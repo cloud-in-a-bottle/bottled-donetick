@@ -178,12 +178,13 @@ export DT_SQLITE_PATH="$DATA_DIR/donetick.db"
 # to localhost — Donetick reads the port from the config but
 # binds 0.0.0.0 by default; we want loopback only.
 echo "[start.sh] Starting Donetick on 127.0.0.1:2021"
-# Donetick's upstream image places the binary at /donetick
-# (top-level file, not a directory).  We cd to /tmp first
-# since donetick reads /config/selfhosted.yaml relative to
-# the current directory in some code paths and we don't
-# want it picking up stray cwd files.
-cd /tmp
+# Donetick reads `./config/<env>.yaml` relative to its cwd
+# (verified against config/config.go: viper.AddConfigPath
+# "./config").  Our /config symlink points at the persistent
+# CONFIG_DIR, so cwd=/ makes ./config/selfhosted.yaml resolve.
+# The binary itself lives at /donetick (top-level file, not a
+# directory).
+cd /
 /donetick > "$LOG_DIR/donetick.log" 2>&1 &
 DT_PID=$!
 
