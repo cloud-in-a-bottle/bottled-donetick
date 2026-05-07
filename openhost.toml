@@ -1,0 +1,63 @@
+[app]
+name = "donetick"
+version = "0.1.0"
+description = "Donetick — open-source task and chore management with natural-language task creation, REST API, and long-lived eAPI tokens.  The zone owner is auto-logged in via an auth-proxy that POSTs Donetick's /api/v1/auth/login with the on-disk admin credentials and renders a tiny HTML bootstrap page that stamps the JWT into localStorage."
+
+[runtime.container]
+# Container port 2022 is the auth-proxy sidecar.  It listens
+# here and reverse-proxies SSO-gated traffic to upstream
+# Donetick on 127.0.0.1:2021 (the upstream image's default
+# port).  This is the port the OpenHost router routes browser
+# traffic to (via the canonical subdomain
+# donetick.<zone-domain>).
+#
+# Auth flow: the SPA stores its JWT in localStorage (not a
+# cookie), so a plain 302+Set-Cookie won't work.  The auth-
+# proxy responds to the first owner navigation with a tiny
+# HTML page containing inline JavaScript that:
+#
+#   1. POSTs the admin credentials to /api/v1/auth/login.
+#   2. Reads the access_token / refresh_token / expiries
+#      from the JSON response.
+#   3. localStorage.setItem('token', <jwt>) plus the three
+#      expiry keys the SPA expects.
+#   4. window.location.replace(<original_path>) to load the
+#      Donetick SPA which now boots fully authenticated.
+#
+# The HTTP-only refresh_token cookie is set by Donetick's
+# login handler and survives across the location.replace, so
+# the SPA's silent-refresh path also works.
+#
+# This is a variant of the openhost-minio auto-login pattern,
+# adapted to localStorage-storing SPAs.
+image = "Dockerfile"
+port = 2022
+
+[routing]
+# Donetick exposes /api/v1/health which returns 200 with no
+# auth.  The OpenHost router will mark the app "ready" the
+# moment this path is reachable through our auth-proxy.
+health_check = "/api/v1/health"
+# Every path is private to the zone owner.  The router 302's
+# anonymous traffic to the zone /login page; the auth-proxy
+# enforces it again locally as defence in depth.  Same shape
+# as openhost-focalboard / openhost-tasks-md.
+public_paths = []
+
+[resources]
+# Donetick (Go binary serving SQLite + REST API + SPA) at
+# idle is ~30 MiB.  Add the auth-proxy sidecar (~25 MiB).
+# 256 MiB is plenty of headroom for personal-scale single-
+# owner usage with hundreds of tasks.
+memory_mb = 256
+# Scheduler does some periodic work (due/overdue jobs every
+# 30m / 3h) but the steady state is well under 250m.
+cpu_millicores = 250
+
+[data]
+# Persistent: the Donetick sqlite DB, the runtime config
+# (selfhosted.yaml with generated secrets), and the on-disk
+# admin credentials file.  Lives under
+# OPENHOST_APP_DATA_DIR/* with mode 0600 on the secret
+# files.
+app_data = true
