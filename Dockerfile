@@ -31,7 +31,7 @@
 #
 # Pin to v0.1.75 (latest stable as of Apr 2026) by image tag.
 # The upstream image is published to docker.io/donetick/donetick.
-FROM docker.io/donetick/donetick:0.1.75 AS donetick-source
+FROM docker.io/donetick/donetick:v0.1.75 AS donetick-source
 
 # Stage 2: build the runtime image.
 #
@@ -44,7 +44,7 @@ FROM docker.io/donetick/donetick:0.1.75 AS donetick-source
 # Donetick binary + auth-proxy translated to Go, but the
 # Python auth-proxy is the OpenHost-wide template and
 # matching it across apps keeps the surface area small.
-FROM docker.io/donetick/donetick:0.1.75
+FROM docker.io/donetick/donetick:v0.1.75
 
 USER root
 
