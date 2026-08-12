@@ -1,14 +1,14 @@
-# openhost-donetick
+# bottled-donetick
 
 [Donetick](https://donetick.com/) — open-source task and chore
 management with natural-language task creation, REST + eAPI
 tokens, real-time sync, and a calendar/dashboard UI — packaged
-as an OpenHost app with seamless OpenHost SSO.
+as a Cloud in a Bottle app with seamless Cloud in a Bottle SSO.
 
 ## What you get
 
 - Donetick running on `https://donetick.<zone>/` with TLS
-  terminated by the OpenHost outer Caddy.
+  terminated by the Cloud in a Bottle outer Caddy.
 - The zone owner is auto-logged in to Donetick on first visit.
   No application-level sign-in form ever appears.
 - Real-time task sync via SSE.
@@ -148,18 +148,18 @@ curl -H "Authorization: Bearer $TOKEN" \
      https://donetick.<zone>/eapi/v1/chore
 ```
 
-The OpenHost router gates this endpoint with `zone_auth` /
-the OpenHost API token, so an agent calling from outside the
+The Cloud in a Bottle router gates this endpoint with `zone_auth` /
+the Cloud in a Bottle API token, so an agent calling from outside the
 zone needs to attach `Authorization: Bearer <openhost-token>`
 ALONGSIDE the eAPI token. The simplest pattern is to run the
-agent inside the same zone (as another OpenHost app) so it
+agent inside the same zone (as another Cloud in a Bottle app) so it
 reaches Donetick directly via the container loopback or via
-the OpenHost router-to-router internal path.
+the Cloud in a Bottle router-to-router internal path.
 
 ## Limitations
 
 - **No OIDC integration yet.** Donetick supports OIDC upstream
-  but OpenHost doesn't yet ship an OIDC issuer. When that
+  but Cloud in a Bottle doesn't yet ship an OIDC issuer. When that
   ships, this package will switch to direct OIDC and the
   bootstrap-HTML hack goes away.
 - **localStorage bootstrap is fragile-ish.** If a browser
